@@ -1,9 +1,12 @@
 import csv
+import imp
 import io
 import os
 from sre_constants import SUCCESS
 import zipfile
 from starlette.requests import Request
+
+from config import Config
 from .utils import make_standard_response
 from fastapi.param_functions import Body
 from starlette import status
@@ -16,6 +19,21 @@ import numpy as np
 from PIL import Image
 from feature_extractor import FeatureExtractor
 from pathlib import Path
+
+class product: 
+    def __init__(self, id, name, desc, price, imageUrl, division): 
+        self.id = id
+        self.name = name
+        self.desc = desc
+        self.price = price
+        self.imageUrl = imageUrl 
+        self.division = division
+
+
+import requests
+from requests.auth import HTTPBasicAuth
+
+
 
 router = APIRouter()
 
@@ -67,7 +85,7 @@ async def upload_file(file: UploadFile = File(...)):
     query = fe.extract(img)
     # L2 distances to features
     dists = np.linalg.norm(features-query, axis=1)
-    ids = np.argsort(dists)[:30]  # Top 30 results
+    ids = np.argsort(dists)[:1]  # Top 30 results
     scores = [(dists[id], img_paths[id]) for id in ids]
 
     # fdir, fname = os.path.split(scores[0][1])
@@ -75,18 +93,51 @@ async def upload_file(file: UploadFile = File(...)):
     # print(type(scores))
     # zipfiles(scores)
     
+    # print(scores)
+
     temp = []
     for item in scores:
         with open('./static/styles.csv', 'r') as file:
             csvreader = csv.reader(file)
-            fdir, fname = os.path.split(item[1])
+            fdir, fname = os.path.split(item[1]) #15177
             for row in csvreader:
                 if (fname.split('.')[0] in row):
                     temp.append(row)
-                    
+
+    print(temp)
+
+    URL = "https://stage.api.azeus.gaptech.com/commerce/search/products/v2/style?keyword=" + temp[0][1] +" "+temp[0][4]+ " " +temp[0][5]
+
+    headers = {'Accept': 'application/json','apikey':Config.apikey}
+
+    req = requests.get(URL, headers=headers)
+    result = req.json()
+
+    
+    # print("The pastebin URL is:%s"%pastebin_url)
+
+
+
+    response_list = [] #list
+    # response_list.append(product('temp', "temp", "temp", "temmp","temp","temp" ))  
+    
+
+    for index,state in enumerate(result["products"]):
+        if(index>10):break
+        # print(state['id'])
+        for data in state["colors"]:
+            if temp[0][5] in data["name"]:
+                file_path = "https://www.gap.com"+data['images'][0]['path']
+                response_list.append(product(state['id'], state['name'], state['description'], data['regularPrice'],file_path,state['webProductType'] ))
+                
+
+     
+    print(response_list)
+    
+
     return make_standard_response(
-        obj = dict(data=temp),
-        message="30 Results fetched successfully",
+        obj = dict(product=response_list),
+        message=str(len(scores) )+ " Results fetched successfully",
         status_code=200,
         success="true"
     )

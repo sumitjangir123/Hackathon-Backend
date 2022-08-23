@@ -5,6 +5,8 @@ from starlette.requests import Request
 from config import Config
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+
+
  
 origins = Config.origins
 

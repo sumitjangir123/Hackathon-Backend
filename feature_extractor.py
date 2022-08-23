@@ -1,3 +1,4 @@
+from email.mime import base
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.models import Model
@@ -8,6 +9,7 @@ import numpy as np
 class FeatureExtractor:
     def __init__(self):
         base_model = VGG16(weights='imagenet')
+        print(base_model.summary())
         self.model = Model(inputs=base_model.input, outputs=base_model.get_layer('fc1').output)
 
     def extract(self, img):
