@@ -5,6 +5,7 @@ import os
 from sre_constants import SUCCESS
 import zipfile
 from starlette.requests import Request
+from applications.db import upload_data
 
 from config import Config
 from .utils import make_standard_response
@@ -19,6 +20,7 @@ import numpy as np
 from PIL import Image
 from feature_extractor import FeatureExtractor
 from pathlib import Path
+
 
 class product: 
     def __init__(self, id, name, desc, price, imageUrl, division): 
@@ -132,9 +134,10 @@ async def upload_file(file: UploadFile = File(...)):
                 
 
      
-    print(response_list)
+    # upload_data()
+    # print(response_list)
     
-
+    print(temp[0][5])
     return make_standard_response(
         obj = dict(product=response_list),
         message=str(len(scores) )+ " Results fetched successfully",
